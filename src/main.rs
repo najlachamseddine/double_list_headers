@@ -147,18 +147,18 @@ impl<T> Drop for DoubleLinkedList<T> {
     }
 }
 
-impl<T> Iterator for DoubleLinkedList<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.pop_head()
-    }
-}
+// impl<T> Iterator for DoubleLinkedList<T> {
+//     type Item = T;
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.pop_head()
+//     }
+// }
 
-impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.pop_tail()
-    }
-}
+// impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
+//     fn next_back(&mut self) -> Option<Self::Item> {
+//         self.pop_tail()
+//     }
+// }
 
 impl<T> Iterator for DoubleLinkedListIter<T>
 where
@@ -203,18 +203,17 @@ where
     }
 }
 
-
-
-
 ////////////////////////////
 ///
 ///
+#[derive(Debug,Default, Clone, Copy)]
 pub struct ConsensusFields;
 
 pub struct TransactionFields;
 
 pub type TransactionId = [u8; 32];
 
+#[derive(Debug, Default, Clone, Copy)]
 pub struct BlockHeader {
     pub block_height: u32,
     pub consensus_fields: ConsensusFields,
@@ -226,6 +225,7 @@ impl BlockHeader {
         true
     }
 }
+
 
 pub struct StateTransitionError;
 
@@ -262,7 +262,18 @@ pub trait ServerAPI {
     ) -> Result<Vec<Vec<Transaction>>, ServerError>;
 }
 
-// type BlockList = DoubleLinkedList<Block>;
+type BlockHeaderList = DoubleLinkedList<BlockHeader>;
+
+
+// impl BlockHeaderList {
+//     async fn get_block_at(&mut self, height: u32) -> Arc<Mutex<Node<Block>>{
+        
+// }
+
+
+// }
+
+
 
 // impl ServerAPI for BlockList {
 
@@ -270,12 +281,21 @@ pub trait ServerAPI {
 //         &self,
 //         block_height_range: Range<u32>,
 //         ) -> Result<Vec<BlockHeader>, ServerError> {
-//            let headers = block_height_range
-//            .map(BlockHeader::from)
-//            .map(|blockHeader| self. )
+//          for i in block_height_range {
+//             let node = self.
+//          }
 
 //            Ok(headers)
 //         }
+
+//     async fn block_transactions(
+//         &self,
+//         block_height_range: Range<u32>,
+//     ) -> Result<Vec<Vec<Transaction>>, ServerError> {
+//         Ok(Vec::new())
+//     }
+
+// }
 
 fn main() {
     // https://rtoch.com/posts/rust-doubly-linked-list/
@@ -289,6 +309,26 @@ fn main() {
         // list.insert_at_tail(i + 2);
     }
 
+    let mut list_block = BlockHeaderList::new();
+    let block_header0 = BlockHeader { block_height: 0, consensus_fields: ConsensusFields{}};
+    // let block1 = Block { header: block_header0, transactions: Vec::new() } ;
+
+    let block_header1 = BlockHeader { block_height: 1, consensus_fields: ConsensusFields{}};
+    // let block2 = Block { header: block_header1, transactions: Vec::new() } ;
+
+    let block_header2 = BlockHeader { block_height: 2, consensus_fields: ConsensusFields{}};
+    // let block3 = Block { header: block_header2, transactions: Vec::new() } ;
+
+    list_block.insert_at_head(block_header2);
+    list_block.insert_at_head(block_header1);
+    list_block.insert_at_head(block_header0);
+
+     for j in list_block.iter() {
+        println!("{:#?}", j);
+        // break;
+    }
+
+
     // println!("{:#?}", list.pop_head());
     // println!("{:#?}", list.pop_tail());
     // println!("{:#?}", list.pop_head());
@@ -298,15 +338,15 @@ fn main() {
     // println!("{:#?}", list.pop_tail());
     // println!("{:#?}", list.pop_tail());
     // println!("{:#?}", list.pop_tail());
-    print!("iter ");
-    for i in list.iter() {
-        println!("{}", i);
-        // break;
-    }
-    for j in list.iter() {
-        println!("{}", j);
-        // break;
-    }
+    // print!("iter ");
+    // for i in list.iter() {
+    //     println!("{}", i);
+    //     // break;
+    // }
+    // for j in list.iter() {
+    //     println!("{}", j);
+    //     // break;
+    // }
 
     // for k in list.iter().rev() {
     //     println!("{}", k);
