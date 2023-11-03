@@ -12,12 +12,18 @@ pub struct Node<T> {
     next: Option<Link<T>>,
 }
 
-pub fn process_node<T>(node: Link<T>) -> T 
-where T: Copy
+pub fn process_node<T>(node: Option<Link<T>>) -> Option<T>
+where
+    T: Copy,
 {
-    let guard = node.lock().unwrap();
-    let value = guard.item;
-    value
+    match node {
+        Some(n) => {
+            let guard = n.lock().unwrap();
+            let value = guard.item;
+            Some(value)
+        }
+        None => None,
+    }
 }
 
 impl<T> Node<T> {
@@ -37,14 +43,12 @@ pub struct DoubleLinkedList<T> {
     size: usize,
 }
 
-
 pub struct DoubleLinkedListIter<T> {
     next: Option<Link<T>>,
     // next_back: Option<&'a Mutex<Node<T>>>,
     // next: MutexGuard<'a, Node<T>>,
     // next_back: MutexGuard<'a, Node<T>>,
 }
-
 
 impl<T> DoubleLinkedList<T> {
     pub fn new() -> Self {
@@ -138,7 +142,6 @@ impl<T> DoubleLinkedList<T> {
             // next_back: self.tail.as_deref(),
         }
     }
-
 }
 
 impl<T> Drop for DoubleLinkedList<T> {
@@ -164,8 +167,9 @@ impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
     }
 }
 
-impl<'a, T> Iterator for DoubleLinkedListIter<T> 
-where T: Copy
+impl<'a, T> Iterator for DoubleLinkedListIter<T>
+where
+    T: Copy + Default,
 {
     type Item = T;
     // type Item = Iter<'_, &'a Mutex<Node<T>>>;
@@ -183,15 +187,23 @@ where T: Copy
     // }
     fn next(&mut self) -> Option<Self::Item> {
         //   let guard = self.next.next.as_deref().unwrap().lock().unwrap();
-          self.next.take().map(|node| {
-            let binding = node.lock().unwrap().next.clone().unwrap();
-            // self.next = Some(Arc::clone(&binding));
-            self.next = Some(binding.clone());
-            // process_node(Arc::clone(&binding))
-            process_node(binding.clone())    
-          })
-   }
-  
+        self.next.take().map(|node| {
+            let mut guard = node.lock().unwrap();
+            match guard.next.take() {
+                Some(n) => {
+                    // let binding = n.clone();
+                    // self.next = Some(Arc::clone(&binding));
+                    self.next = Some(n.clone());
+                    // process_node(Arc::clone(&binding))
+                    process_node(Some(n.clone())).unwrap()
+                }
+                None => {
+                    self.next = None;
+                    T::default()
+                }
+            }
+        })
+    }
 }
 
 // for iter
