@@ -188,8 +188,8 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         //   let guard = self.next.next.as_deref().unwrap().lock().unwrap();
         self.next.take().map(|node| {
-            let mut guard = node.lock().unwrap();
-            match guard.next.take() {
+            let  guard = node.lock().unwrap();
+            match guard.next.clone() {
                 Some(n) => {
                     // let binding = n.clone();
                     // self.next = Some(Arc::clone(&binding));
@@ -316,6 +316,10 @@ fn main() {
     print!("iter ");
     for i in list.iter() {
         println!("{}", i);
+        // break;
+    }
+    for j in list.iter() {
+        println!("{}", j);
         // break;
     }
     // print!("into iter");
