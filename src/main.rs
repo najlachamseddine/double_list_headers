@@ -45,10 +45,9 @@ pub struct DoubleLinkedList<T> {
 
 pub struct DoubleLinkedListIter<T> {
     next: Option<Link<T>>,
-    // next_back: Option<&'a Mutex<Node<T>>>,
-    // next: MutexGuard<'a, Node<T>>,
-    // next_back: MutexGuard<'a, Node<T>>,
+    next_back: Option<Link<T>>,
 }
+
 
 impl<T> DoubleLinkedList<T> {
     pub fn new() -> Self {
@@ -129,19 +128,13 @@ impl<T> DoubleLinkedList<T> {
         })
     }
 
-    // pub fn iter<'a>(&'a self) -> DoubleLinkedListIter<'a, T> {
-    //     DoubleLinkedListIter {
-    //         next: self.head.as_deref(),
-    //         next_back: self.tail.as_deref(),
-    //     }
-    // }
-
     pub fn iter<'a>(&'a self) -> DoubleLinkedListIter<T> {
         DoubleLinkedListIter {
             next: self.head.clone(),
-            // next_back: self.tail.as_deref(),
+            next_back: self.tail.clone(),
         }
     }
+
 }
 
 impl<T> Drop for DoubleLinkedList<T> {
@@ -167,34 +160,17 @@ impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
     }
 }
 
-impl<'a, T> Iterator for DoubleLinkedListIter<T>
+impl<T> Iterator for DoubleLinkedListIter<T>
 where
     T: Copy + Default,
 {
     type Item = T;
-    // type Item = Iter<'_, &'a Mutex<Node<T>>>;
-    // fn next(&mut self) -> Option<Self::Item> {
-    //     self.next.map(|node| {
-    //         // let n = node.clone();
-    //         // let n2 = &node.lock().unwrap().item;
-    //         // let n3 = node.lock().unwrap().next.as_deref().iter();
-    //         let guard = node.lock().unwrap();
-    //         self.next = guard.next.as_deref();
-    //         &guard.item
-    //         // n.lock().unwrap().next.as_deref().clone().unwrap()
-    //         // node.lock().unwrap().next.as_deref().unwrap()
-    //     })
-    // }
     fn next(&mut self) -> Option<Self::Item> {
-        //   let guard = self.next.next.as_deref().unwrap().lock().unwrap();
         self.next.take().map(|node| {
-            let  guard = node.lock().unwrap();
+            let guard = node.lock().unwrap();
             match guard.next.clone() {
                 Some(n) => {
-                    // let binding = n.clone();
-                    // self.next = Some(Arc::clone(&binding));
                     self.next = Some(n.clone());
-                    // process_node(Arc::clone(&binding))
                     process_node(Some(n.clone())).unwrap()
                 }
                 None => {
@@ -206,22 +182,30 @@ where
     }
 }
 
-// for iter
-// impl<'a, T> Iterator for DoubleLinkedList<'a, T> {
-//     type Item = &'a T;
-//     fn next(&'a mut self) -> Option<Self::Item> {
-//         self.head.map(|node| {
-//             self.head = node.lock().unwrap().next.map(|node| & node);
-//             & node.item
-//         })
-//     }
-// }
+impl<T> DoubleEndedIterator for DoubleLinkedListIter<T>
+where
+    T: Copy + Default,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.next_back.take().map(|node| {
+            let guard = node.lock().unwrap();
+            match guard.previous.clone() {
+                Some(n) => {
+                    self.next_back = Some(n.clone());
+                    process_node(Some(n.clone())).unwrap()
+                }
+                None => {
+                    self.next_back = None;
+                    T::default()
+                }
+            }
+        })
+    }
+}
 
-// impl<'a, T> DoubleEndedIterator for DoubleLinkedList<'a, T> {
-//     fn next_back(&mut self) -> Option<Self::Item> {
-//         self.pop_tail()
-//     }
-// }
+
+
+
 ////////////////////////////
 ///
 ///
@@ -304,6 +288,7 @@ fn main() {
         list.insert_at_head(i);
         // list.insert_at_tail(i + 2);
     }
+
     // println!("{:#?}", list.pop_head());
     // println!("{:#?}", list.pop_tail());
     // println!("{:#?}", list.pop_head());
@@ -322,6 +307,11 @@ fn main() {
         println!("{}", j);
         // break;
     }
+
+    // for k in list.iter().rev() {
+    //     println!("{}", k);
+    //     // break;
+    // }
     // print!("into iter");
     // println!("{:#?}", list.next());
     // println!("{:#?}", list.next());
