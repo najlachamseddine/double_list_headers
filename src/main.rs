@@ -265,23 +265,47 @@ pub trait ServerAPI {
 type BlockHeaderList = DoubleLinkedList<BlockHeader>;
 
 
-// impl BlockHeaderList {
-//     async fn get_block_at(&mut self, height: u32) -> Arc<Mutex<Node<Block>>{
-        
-// }
+impl BlockHeaderList {
+
+    fn get_block_header_at(&mut self, height: u32) -> Arc<Mutex<Node<BlockHeader>>> {
+        let mut iter = self.iter();
+        while let Some(h) =  iter.next() {
+            println!("get_block_header_at {:#?}", h.block_height);
+            if h.block_height == height {
+              break;
+            }
+        }
+        return self.head.clone().unwrap();
+}
+
+fn verify_block_header_list(&mut self, block_height_range: Range<u32>) -> bool {
+    let h_start = block_height_range.start;
+    let h_end = block_height_range.end;
+    let h = self.get_block_header_at(h_start);
+    let mut iter = self.iter();
+    let mut r = h_start;
+    while r < h_end {
+        let header = iter.next();
+        let next_header = iter.next();
+        if header.unwrap().block_height != next_header.unwrap().block_height + 1 {
+            return false;
+        }
+        r +=2;
+    }
+    return true;
+}
+
+}
 
 
-// }
 
-
-
-// impl ServerAPI for BlockList {
+// impl ServerAPI for BlockHeaderList {
 
 //     async fn block_headers(
 //         &self,
 //         block_height_range: Range<u32>,
 //         ) -> Result<Vec<BlockHeader>, ServerError> {
-//          for i in block_height_range {
+//          block_height_range {
 //             let node = self.
 //          }
 
@@ -319,15 +343,34 @@ fn main() {
     let block_header2 = BlockHeader { block_height: 2, consensus_fields: ConsensusFields{}};
     // let block3 = Block { header: block_header2, transactions: Vec::new() } ;
 
-    list_block.insert_at_head(block_header2);
-    list_block.insert_at_head(block_header1);
+    let block_header3 = BlockHeader { block_height: 3, consensus_fields: ConsensusFields{}};
+    // let block3 = Block { header: block_header3, transactions: Vec::new() } ;
+
+    let block_header4 = BlockHeader { block_height: 4, consensus_fields: ConsensusFields{}};
+    // let block4 = Block { header: block_header4, transactions: Vec::new() } ;
+
+    let block_header5 = BlockHeader { block_height: 5, consensus_fields: ConsensusFields{}};
+    // let block5 = Block { header: block_header5, transactions: Vec::new() } ;
+
     list_block.insert_at_head(block_header0);
+    list_block.insert_at_head(block_header1);
+    list_block.insert_at_head(block_header2);
+    list_block.insert_at_head(block_header3);
+    list_block.insert_at_head(block_header4);
+    list_block.insert_at_head(block_header5);
+    
 
      for j in list_block.iter() {
         println!("{:#?}", j);
         // break;
     }
 
+   let block_at = list_block.get_block_header_at(3);
+//    println!("BLOCK AT {:#?}", block_at.lock().unwrap().item);
+   println!("BLOCK AT {:#?}", block_at.lock().unwrap().item);
+
+   let verify_block_headers = list_block.verify_block_header_list(0..2);
+   println!("verify list headers {:#?}", verify_block_headers);
 
     // println!("{:#?}", list.pop_head());
     // println!("{:#?}", list.pop_tail());
