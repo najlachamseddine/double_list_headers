@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use core::ops::Range;
 use std::sync::{Arc, Mutex};
+use std::fmt;
 
 // Rc::RefCell can also be used (non thread safe though)
 pub type Link<T> = Arc<Mutex<Node<T>>>;
@@ -168,6 +169,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.next.take().map(|node| {
             let guard = node.lock().unwrap();
+            // use if let Some(guard.next.clone() = n and remove the match None)
             match guard.next.clone() {
                 Some(n) => {
                     self.next = Some(n.clone());
@@ -209,6 +211,7 @@ where
 #[derive(Debug,Default, Clone, Copy)]
 pub struct ConsensusFields;
 
+#[derive(Debug,Default, Clone, Copy)]
 pub struct TransactionFields;
 
 pub type TransactionId = [u8; 32];
@@ -229,6 +232,7 @@ impl BlockHeader {
 
 pub struct StateTransitionError;
 
+#[derive(Debug,Default, Clone, Copy)]
 pub struct Transaction {
     pub tx_id: TransactionId,
     pub transaction_fields: TransactionFields,
@@ -249,10 +253,16 @@ pub struct Block {
 
 pub struct ServerError;
 
+impl fmt::Display for ServerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Server error")
+    }
+}
+
 #[async_trait]
 pub trait ServerAPI {
     async fn block_headers(
-        &self,
+        &mut self,
         block_height_range: Range<u32>,
     ) -> Result<Vec<BlockHeader>, ServerError>;
 
@@ -262,64 +272,8 @@ pub trait ServerAPI {
     ) -> Result<Vec<Vec<Transaction>>, ServerError>;
 }
 
-type BlockHeaderList = DoubleLinkedList<BlockHeader>;
 
 
-impl BlockHeaderList {
-
-    fn get_block_header_at(&mut self, height: u32) -> Arc<Mutex<Node<BlockHeader>>> {
-        let mut iter = self.iter();
-        while let Some(h) =  iter.next() {
-            println!("get_block_header_at {:#?}", h.block_height);
-            if h.block_height == height {
-              break;
-            }
-        }
-        return self.head.clone().unwrap();
-}
-
-fn verify_block_header_list(&mut self, block_height_range: Range<u32>) -> bool {
-    let h_start = block_height_range.start;
-    let h_end = block_height_range.end;
-    let h = self.get_block_header_at(h_start);
-    let mut iter = self.iter();
-    let mut r = h_start;
-    while r < h_end {
-        let header = iter.next();
-        let next_header = iter.next();
-        if header.unwrap().block_height != next_header.unwrap().block_height + 1 {
-            return false;
-        }
-        r +=2;
-    }
-    return true;
-}
-
-}
-
-
-
-// impl ServerAPI for BlockHeaderList {
-
-//     async fn block_headers(
-//         &self,
-//         block_height_range: Range<u32>,
-//         ) -> Result<Vec<BlockHeader>, ServerError> {
-//          block_height_range {
-//             let node = self.
-//          }
-
-//            Ok(headers)
-//         }
-
-//     async fn block_transactions(
-//         &self,
-//         block_height_range: Range<u32>,
-//     ) -> Result<Vec<Vec<Transaction>>, ServerError> {
-//         Ok(Vec::new())
-//     }
-
-// }
 
 fn main() {
     // https://rtoch.com/posts/rust-doubly-linked-list/
@@ -330,47 +284,47 @@ fn main() {
     let mut list = DoubleLinkedList::<i32>::new();
     for i in 0..=10 {
         list.insert_at_head(i);
-        // list.insert_at_tail(i + 2);
+        list.insert_at_tail(i + 2);
     }
 
-    let mut list_block = BlockHeaderList::new();
-    let block_header0 = BlockHeader { block_height: 0, consensus_fields: ConsensusFields{}};
-    // let block1 = Block { header: block_header0, transactions: Vec::new() } ;
+    // let mut list_block = BlockHeaderList::new();
+    // let block_header0 = BlockHeader { block_height: 0, consensus_fields: ConsensusFields{}};
+    // // let block1 = Block { header: block_header0, transactions: Vec::new() } ;
 
-    let block_header1 = BlockHeader { block_height: 1, consensus_fields: ConsensusFields{}};
-    // let block2 = Block { header: block_header1, transactions: Vec::new() } ;
+    // let block_header1 = BlockHeader { block_height: 1, consensus_fields: ConsensusFields{}};
+    // // let block2 = Block { header: block_header1, transactions: Vec::new() } ;
 
-    let block_header2 = BlockHeader { block_height: 2, consensus_fields: ConsensusFields{}};
-    // let block3 = Block { header: block_header2, transactions: Vec::new() } ;
+    // let block_header2 = BlockHeader { block_height: 2, consensus_fields: ConsensusFields{}};
+    // // let block3 = Block { header: block_header2, transactions: Vec::new() } ;
 
-    let block_header3 = BlockHeader { block_height: 3, consensus_fields: ConsensusFields{}};
-    // let block3 = Block { header: block_header3, transactions: Vec::new() } ;
+    // let block_header3 = BlockHeader { block_height: 3, consensus_fields: ConsensusFields{}};
+    // // let block3 = Block { header: block_header3, transactions: Vec::new() } ;
 
-    let block_header4 = BlockHeader { block_height: 4, consensus_fields: ConsensusFields{}};
-    // let block4 = Block { header: block_header4, transactions: Vec::new() } ;
+    // let block_header4 = BlockHeader { block_height: 4, consensus_fields: ConsensusFields{}};
+    // // let block4 = Block { header: block_header4, transactions: Vec::new() } ;
 
-    let block_header5 = BlockHeader { block_height: 5, consensus_fields: ConsensusFields{}};
-    // let block5 = Block { header: block_header5, transactions: Vec::new() } ;
+    // let block_header5 = BlockHeader { block_height: 5, consensus_fields: ConsensusFields{}};
+    // // let block5 = Block { header: block_header5, transactions: Vec::new() } ;
 
-    list_block.insert_at_head(block_header0);
-    list_block.insert_at_head(block_header1);
-    list_block.insert_at_head(block_header2);
-    list_block.insert_at_head(block_header3);
-    list_block.insert_at_head(block_header4);
-    list_block.insert_at_head(block_header5);
+    // list_block.insert_at_head(block_header0);
+    // list_block.insert_at_head(block_header1);
+    // list_block.insert_at_head(block_header2);
+    // list_block.insert_at_head(block_header3);
+    // list_block.insert_at_head(block_header4);
+    // list_block.insert_at_head(block_header5);
     
 
-     for j in list_block.iter() {
-        println!("{:#?}", j);
-        // break;
-    }
+//      for j in list_block.iter() {
+//         println!("{:#?}", j);
+//         // break;
+//     }
 
-   let block_at = list_block.get_block_header_at(3);
+//    let block_at = list_block.get_block_header_at(3);
+// //    println!("BLOCK AT {:#?}", block_at.lock().unwrap().item);
 //    println!("BLOCK AT {:#?}", block_at.lock().unwrap().item);
-   println!("BLOCK AT {:#?}", block_at.lock().unwrap().item);
 
-   let verify_block_headers = list_block.verify_block_header_list(0..2);
-   println!("verify list headers {:#?}", verify_block_headers);
+//    let verify_block_headers = list_block.verify_block_header_list(0..2);
+//    println!("verify list headers {:#?}", verify_block_headers);
 
     // println!("{:#?}", list.pop_head());
     // println!("{:#?}", list.pop_tail());
