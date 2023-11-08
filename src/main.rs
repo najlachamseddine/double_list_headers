@@ -5,6 +5,7 @@ use hex::FromHex;
 use std::fmt;
 use std::sync::{Arc, Mutex};
 use tokio::runtime::Handle;
+use async_recursion::async_recursion;
 
 // Rc::RefCell can also be used (non thread safe though)
 pub type Link<T> = Arc<Mutex<Node<T>>>;
@@ -326,28 +327,72 @@ impl BlockList {
         return Err(StateTransitionError);
     }
 
-    // async fn build_blocks_backward(&mut self,
+    #[async_recursion(?Send)]
+    async fn build_blocks_backward(
+        &self,
+        blocks: Vec<Block>,
+        block_height_range: Range<u32>,
+    ) -> Result<Vec<Block>, ServerError> {
+        let mut iter = self.iter();
+        if iter.next_back().is_none() {
+            return Ok(blocks);
+        }
+        let previous_block = self
+            .build_blocks_backward(blocks, block_height_range.start..block_height_range.end - 1)
+            .await;
+        if previous_block.as_ref().ok().is_some() {
+            iter.next();
+            let block_header = self
+                .block_headers(block_height_range.end - 1..block_height_range.end)
+                .await;
+            let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+            let res2: Vec<_> = header
+                .clone()
+                .into_iter()
+                .map(|bh| {
+                    return self.build_block_transactions(bh, block_height_range.end - 1);
+                })
+                .collect();
+            let mut res = futures::future::join_all(res2).await;
+            match res.remove(0) {
+                Ok(b) => {
+                    let mut previous_blocks = previous_block.unwrap();
+                    previous_blocks.push(b);
+                    return Ok(previous_blocks);
+                },
+                Err(_) => return Err(ServerError),
+            }
+        }
+        return Err(ServerError);
+    }
+
+    // #[async_recursion(?Send)]
+    // async fn build_blocks_forward(
+    //     &self,
+    //     blocks: Vec<Option<Block>>,
     //     block_height_range: Range<u32>,
-    // ) -> Result<Vec<Block>, ServerError> {
+    // ) -> Result<Vec<Option<Block>>, ServerError> {
     //     let mut iter = self.iter();
-    //     let blocks = vec![];
-    //     let n = iter.next();
-    //   loop {
-    //     if n.is_none() {return Ok(blocks)};
-    //     if n.clone().unwrap().header.block_height == block_height_range.end -1 {
-    //         break;
+    //     let block_header = self
+    //         .block_headers(block_height_range.end - 1..block_height_range.end)
+    //         .await;
+    //     let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+    //     let res2: Vec<_> = header
+    //         .clone()
+    //         .into_iter()
+    //         .map(|bh| {
+    //             return self.build_block_transactions(bh, block_height_range.end - 1);
+    //         })
+    //         .collect();
+    //     let mut res = futures::future::join_all(res2).await;
+    //     let d = res.remove(0);
+    //     if d.ok().is_some() {
+    //         if iter.next().is_none() {
+    //             return Ok(blocks);
+    //         }
+    //         return self.build_blocks_forward(blocks.push(), block_height_range.start..block_height_range.end - 1).await;
     //     }
-    //     iter.next();
-    //   }
-
-    // }
-
-    // async fn validate_block(node: Option<Link<Block>>, block_height_range: Range<u32>) -> Result<Option<Block>, ServerError>{
-    //     let validate_previous_block = validate_block(node.clone().unwrap().lock().unwrap().previous, block_height_range - 1).await;
-    //     if (validate_previous_block){
-    //         // build the block
-    //     }
-
+    //     return Err(ServerError)
     // }
 }
 
