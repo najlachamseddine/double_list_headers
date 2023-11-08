@@ -366,34 +366,36 @@ impl BlockList {
         return Err(ServerError);
     }
 
-    // #[async_recursion(?Send)]
-    // async fn build_blocks_forward(
-    //     &self,
-    //     blocks: Vec<Option<Block>>,
-    //     block_height_range: Range<u32>,
-    // ) -> Result<Vec<Option<Block>>, ServerError> {
-    //     let mut iter = self.iter();
-    //     let block_header = self
-    //         .block_headers(block_height_range.end - 1..block_height_range.end)
-    //         .await;
-    //     let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-    //     let res2: Vec<_> = header
-    //         .clone()
-    //         .into_iter()
-    //         .map(|bh| {
-    //             return self.build_block_transactions(bh, block_height_range.end - 1);
-    //         })
-    //         .collect();
-    //     let mut res = futures::future::join_all(res2).await;
-    //     let d = res.remove(0);
-    //     if d.ok().is_some() {
-    //         if iter.next().is_none() {
-    //             return Ok(blocks);
-    //         }
-    //         return self.build_blocks_forward(blocks.push(), block_height_range.start..block_height_range.end - 1).await;
-    //     }
-    //     return Err(ServerError)
-    // }
+    #[async_recursion(?Send)]
+    async fn build_blocks_forward(
+        &self,
+        mut blocks: Vec<Block>,
+        block_height_range: Range<u32>,
+    ) -> Result<Vec<Block>, ServerError> {
+        let mut iter = self.iter();
+        let block_header = self
+            .block_headers(block_height_range.end - 1..block_height_range.end)
+            .await;
+        let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+        let res2: Vec<_> = header
+            .clone()
+            .into_iter()
+            .map(|bh| {
+                return self.build_block_transactions(bh, block_height_range.end - 1);
+            })
+            .collect();
+        let mut res = futures::future::join_all(res2).await;
+        let d = res.remove(0);
+        if d.as_ref().ok().is_some() {
+            if iter.next().is_none() {
+                return Ok(blocks);
+            }
+            let new_block = d.unwrap();
+            blocks.push(new_block);
+            return self.build_blocks_forward(blocks, block_height_range.start..block_height_range.end - 1).await;
+        }
+        return Err(ServerError)
+    }
 }
 
 #[async_trait]
