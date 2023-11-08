@@ -135,16 +135,16 @@ impl<T> Drop for DoubleLinkedList<T> {
 }
 
 impl<T> Iterator for DoubleLinkedList<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.pop_head()
-    }
+type Item = T;
+fn next(&mut self) -> Option<Self::Item> {
+self.pop_head()
+}
 }
 
 impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.pop_tail()
-    }
+fn next_back(&mut self) -> Option<Self::Item> {
+self.pop_tail()
+}
 }
 
 impl<T> Iterator for DoubleLinkedListIter<T>
@@ -242,7 +242,7 @@ impl fmt::Display for ServerError {
 
 #[async_trait]
 pub trait ServerAPI {
-    // add async later
+// add async later
     async fn block_headers(
         &self,
         block_height_range: Range<u32>,
@@ -538,23 +538,23 @@ async fn main() {
     list_block.insert_at_head(block1);
     list_block.insert_at_head(block0.clone());
 
-    //  for j in list_block.iter() {
-    //     println!("{:#?}", j);
-    //     // break;
-    // }
+//  for j in list_block.iter() {
+//     println!("{:#?}", j);
+//     // break;
+// }
 
-    // let block_at = list_block.get_block_header_at(2);
-    // println!("BLOCK AT {:#?}", block_at);
+// let block_at = list_block.get_block_header_at(2);
+// println!("BLOCK AT {:#?}", block_at);
 
-    //    let verify_block_headers = list_block.verify_block_header_list(0..4);
-    //    println!("verify list headers {:#?}", verify_block_headers);
+//    let verify_block_headers = list_block.verify_block_header_list(0..4);
+//    println!("verify list headers {:#?}", verify_block_headers);
 
     // let headers = list_block.block_headers(1..6).await;
     // println!("block headers {:#?}", headers);
 
     // let valid = validate_block_transactions(block0.clone().transactions);
     // println!("validate transactions {:#?}", valid);
-
+    
     let new_block = list_block.build_block_transaction(block_header0, 0).await;
     println!("NEW BLOCK {:#?}", new_block );
 
@@ -575,4 +575,4 @@ async fn main() {
     //     println!("{}", k);
     //     // break;
     // }
-}
+    }
