@@ -1,9 +1,10 @@
 use async_trait::async_trait;
-use tokio::runtime::Handle;
 use core::ops::Range;
+use futures::executor::block_on;
 use hex::FromHex;
 use std::fmt;
 use std::sync::{Arc, Mutex};
+use tokio::runtime::Handle;
 
 // Rc::RefCell can also be used (non thread safe though)
 pub type Link<T> = Arc<Mutex<Node<T>>>;
@@ -135,16 +136,16 @@ impl<T> Drop for DoubleLinkedList<T> {
 }
 
 impl<T> Iterator for DoubleLinkedList<T> {
-type Item = T;
-fn next(&mut self) -> Option<Self::Item> {
-self.pop_head()
-}
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.pop_head()
+    }
 }
 
 impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
-fn next_back(&mut self) -> Option<Self::Item> {
-self.pop_tail()
-}
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.pop_tail()
+    }
 }
 
 impl<T> Iterator for DoubleLinkedListIter<T>
@@ -242,7 +243,7 @@ impl fmt::Display for ServerError {
 
 #[async_trait]
 pub trait ServerAPI {
-// add async later
+    // add async later
     async fn block_headers(
         &self,
         block_height_range: Range<u32>,
@@ -271,69 +272,61 @@ impl BlockList {
         block_height_range: Range<u32>,
     ) -> Result<Vec<Block>, ServerError> {
         let mut blocks = vec![];
-        let res1: Vec<_> = block_height_range.into_iter().map(|i| {
-            let s = self.clone();
-            return tokio::spawn(async move {
-                let block_header = s.block_headers(i..i + 1).await;
-                let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-                println!("{:#?}", i);
-                // println!("{:#?}", header[0]);
-                let res2: Vec<_> = header.clone().into_iter().map(|bh| {
-                    if bh.verify() {
-                        // let b = tokio::spawn(async move {
-                        //     let block_transactions = self.block_transactions(i..i + 1).await;
-                        //     let transactions =
-                        //         block_transactions.map_err(|e| ServerError).unwrap(); // check the return
-                        //     transactions.into_iter().map(|txs| {
-                        //         match validate_block_transactions(txs) {
-                        //             Ok(()) => {
-                        //                let block = Block {
-                        //                 header: bh,
-                        //                 transactions: transactions[0],
-                        //             };
-                        //             blocks.clone().push(block.clone());
-                        //             return Some(block.clone());
-                        //             }
-                        //             Err(StateTransitionError) =>  return Err(ServerError),
-                        //         }
-                        //     });
-                        // });
-                    //     blocks.push(Block{header: bh.clone(), transactions: vec![]});
-                    } 
-                }).collect();
-         return header[0];
-            });
-    }).collect();
-    let res = futures::future::join_all(res1).await;
-    for r in res {
-        println!("join return {:#?}", r.unwrap());
-    }
-
-        Ok(blocks)
-
-        
-    }
-
-
-async fn build_block_transaction(&mut self, block_header: BlockHeader, height: u32) -> Result<Block, StateTransitionError>{
-    let block_transactions = self.block_transactions(height..height+1).await;
-    let transactions = block_transactions.map_err(|e| ServerError).unwrap();
-    let mut x: Vec<_> = transactions.into_iter().map(|txs| {
-    match validate_block_transactions(txs.clone()) {
-            Ok(()) => {
-                 return Ok(Block {header: block_header, transactions: txs});
-
-            },
-            Err(_) => return Err(StateTransitionError) 
+        let res1: Vec<_> = block_height_range
+            .into_iter()
+            .map(|i| {
+                let s = self.clone();
+                return tokio::spawn(async move {
+                    let block_header = s.block_headers(i..i + 1).await;
+                    let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+                    let res2: Vec<_> = header
+                        .clone()
+                        .into_iter()
+                        .map(|bh| {
+                            return s.build_block_transactions(bh, i);
+                        })
+                        .collect();
+                    let mut res = futures::future::join_all(res2).await;
+                    return res.remove(0).unwrap();
+                });
+            })
+            .collect();
+        let res = futures::future::join_all(res1).await;
+        for r in res {
+            blocks.push(r.unwrap().clone())
         }
-    }).collect();
-    if x.len() == 1 {
-       return x.remove(0)
+        Ok(blocks)
     }
-    return Err(StateTransitionError)
-}
 
-    // async fn build_blocks_backward(&mut self,   
+    async fn build_block_transactions(
+        &self,
+        block_header: BlockHeader,
+        height: u32,
+    ) -> Result<Block, StateTransitionError> {
+        if !block_header.verify() {
+            return Err(StateTransitionError);
+        }
+        let block_transactions = self.block_transactions(height..height + 1).await;
+        let transactions = block_transactions.map_err(|e| ServerError).unwrap();
+        let mut x: Vec<_> = transactions
+            .into_iter()
+            .map(|txs| match validate_block_transactions(txs.clone()) {
+                Ok(()) => {
+                    return Ok(Block {
+                        header: block_header,
+                        transactions: txs,
+                    });
+                }
+                Err(_) => return Err(StateTransitionError),
+            })
+            .collect();
+        if x.len() == 1 {
+            return x.remove(0);
+        }
+        return Err(StateTransitionError);
+    }
+
+    // async fn build_blocks_backward(&mut self,
     //     block_height_range: Range<u32>,
     // ) -> Result<Vec<Block>, ServerError> {
     //     let mut iter = self.iter();
@@ -352,12 +345,10 @@ async fn build_block_transaction(&mut self, block_header: BlockHeader, height: u
     // async fn validate_block(node: Option<Link<Block>>, block_height_range: Range<u32>) -> Result<Option<Block>, ServerError>{
     //     let validate_previous_block = validate_block(node.clone().unwrap().lock().unwrap().previous, block_height_range - 1).await;
     //     if (validate_previous_block){
-    //         // build the block 
+    //         // build the block
     //     }
 
-
     // }
-
 }
 
 #[async_trait]
@@ -382,10 +373,6 @@ impl ServerAPI for BlockList {
             if i < h_start {
                 continue;
             }
-            // if !block.clone().unwrap().header.verify() {
-            //         return Err(ServerError);
-            // }
-
             headers.push(block.unwrap().header);
         }
         Ok(headers)
@@ -538,41 +525,41 @@ async fn main() {
     list_block.insert_at_head(block1);
     list_block.insert_at_head(block0.clone());
 
-//  for j in list_block.iter() {
-//     println!("{:#?}", j);
-//     // break;
-// }
+    //  for j in list_block.iter() {
+    //     println!("{:#?}", j);
+    //     // break;
+    // }
 
-// let block_at = list_block.get_block_header_at(2);
-// println!("BLOCK AT {:#?}", block_at);
+    // let block_at = list_block.get_block_header_at(2);
+    // println!("BLOCK AT {:#?}", block_at);
 
-//    let verify_block_headers = list_block.verify_block_header_list(0..4);
-//    println!("verify list headers {:#?}", verify_block_headers);
+    //    let verify_block_headers = list_block.verify_block_header_list(0..4);
+    //    println!("verify list headers {:#?}", verify_block_headers);
 
     // let headers = list_block.block_headers(1..6).await;
     // println!("block headers {:#?}", headers);
 
     // let valid = validate_block_transactions(block0.clone().transactions);
     // println!("validate transactions {:#?}", valid);
-    
-    let new_block = list_block.build_block_transaction(block_header0, 0).await;
-    println!("NEW BLOCK {:#?}", new_block );
 
-    // let arclist = Arc::new(list_block);
-    // let blocks_parallel = arclist.build_blocks_parallel(1..4).await;
-    // println!("block parallel {:#?}", blocks_parallel);
+    // let new_block = list_block.build_block_transactions(block_header3, 3).await;
+    // println!("NEW BLOCK {:#?}", new_block );
+
+    let arclist = Arc::new(list_block);
+    let blocks_parallel = arclist.build_blocks_parallel(1..4).await;
+    println!("block parallel {:#?}", blocks_parallel);
 
     // for i in list.iter().rev() {
     //     println!("{}", i);
     //     // break;
     // }
-    // for j in list.iter() {
-    //     println!("{}", j);
-    //     // break;
-    // }
+    for j in list.iter() {
+        println!("{}", j);
+        // break;
+    }
 
     // for k in list.iter().rev() {
     //     println!("{}", k);
     //     // break;
     // }
-    }
+}
