@@ -463,9 +463,6 @@ fn validate_block_transactions(transactions: Vec<Transaction>) -> Result<(), Sta
 
 #[tokio::main]
 async fn main() {
-    // https://rtoch.com/posts/rust-doubly-linked-list/
-    // add test with cfg_test and asserts
-    // test drop works fine
 
     println!("Hello, world!");
     let mut list = DoubleLinkedList::<i32>::new();
