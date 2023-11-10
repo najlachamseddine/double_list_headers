@@ -1,180 +1,179 @@
 use async_trait::async_trait;
 use core::ops::Range;
-use futures::executor::block_on;
 use hex::FromHex;
 use std::fmt;
-use std::sync::{Arc, Mutex};
-use tokio::runtime::Handle;
+use std::sync::Arc;
 use async_recursion::async_recursion;
+use list::linked_list::*;
 
-// Rc::RefCell can also be used (non thread safe though)
-pub type Link<T> = Arc<Mutex<Node<T>>>;
+// // Rc::RefCell can also be used (non thread safe though)
+// pub type Link<T> = Arc<Mutex<Node<T>>>;
 
-#[derive(Debug)]
-pub struct Node<T> {
-    item: T,
-    previous: Option<Link<T>>,
-    next: Option<Link<T>>,
-}
+// #[derive(Debug)]
+// pub struct Node<T> {
+//     item: T,
+//     previous: Option<Link<T>>,
+//     next: Option<Link<T>>,
+// }
 
-impl<T> Node<T> {
-    fn new(item: T) -> Self {
-        Self {
-            item,
-            previous: None,
-            next: None,
-        }
-    }
-}
+// impl<T> Node<T> {
+//     fn new(item: T) -> Self {
+//         Self {
+//             item,
+//             previous: None,
+//             next: None,
+//         }
+//     }
+// }
 
-#[derive(Debug)]
-pub struct DoubleLinkedList<T> {
-    head: Option<Link<T>>,
-    tail: Option<Link<T>>,
-    size: usize,
-}
+// #[derive(Debug)]
+// pub struct DoubleLinkedList<T> {
+//     head: Option<Link<T>>,
+//     tail: Option<Link<T>>,
+//     size: usize,
+// }
 
-pub struct DoubleLinkedListIter<T> {
-    next: Option<Link<T>>,
-    next_back: Option<Link<T>>,
-}
+// pub struct DoubleLinkedListIter<T> {
+//     next: Option<Link<T>>,
+//     next_back: Option<Link<T>>,
+// }
 
-impl<T> DoubleLinkedList<T> {
-    pub fn new() -> Self {
-        DoubleLinkedList {
-            head: None,
-            tail: None,
-            size: 0,
-        }
-    }
+// impl<T> DoubleLinkedList<T> {
+//     pub fn new() -> Self {
+//         DoubleLinkedList {
+//             head: None,
+//             tail: None,
+//             size: 0,
+//         }
+//     }
 
-    pub fn len(&self) -> usize {
-        self.size
-    }
+//     pub fn len(&self) -> usize {
+//         self.size
+//     }
 
-    pub fn insert_at_head(&mut self, data: T) {
-        let new_node = Arc::new(Mutex::new(Node::new(data)));
-        match self.head.take() {
-            None => {
-                self.head = Some(Arc::clone(&new_node));
-                self.tail = Some(new_node);
-                self.size = 1;
-            }
-            Some(h) => {
-                h.lock().unwrap().previous = Some(Arc::clone(&new_node));
-                new_node.lock().unwrap().next = Some(h);
-                self.head = Some(new_node);
-                self.size += 1;
-            }
-        }
-    }
+//     pub fn insert_at_head(&mut self, data: T) {
+//         let new_node = Arc::new(Mutex::new(Node::new(data)));
+//         match self.head.take() {
+//             None => {
+//                 self.head = Some(Arc::clone(&new_node));
+//                 self.tail = Some(new_node);
+//                 self.size = 1;
+//             }
+//             Some(h) => {
+//                 h.lock().unwrap().previous = Some(Arc::clone(&new_node));
+//                 new_node.lock().unwrap().next = Some(h);
+//                 self.head = Some(new_node);
+//                 self.size += 1;
+//             }
+//         }
+//     }
 
-    pub fn insert_at_tail(&mut self, data: T) {
-        let new_node = Arc::new(Mutex::new(Node::new(data)));
-        match self.tail.take() {
-            None => {
-                self.head = Some(Arc::clone(&new_node));
-                self.tail = Some(new_node);
-                self.size = 1;
-            }
-            Some(t) => {
-                t.lock().unwrap().next = Some(Arc::clone(&new_node));
-                new_node.lock().unwrap().previous = Some(t);
-                self.tail = Some(new_node);
-                self.size += 1;
-            }
-        }
-    }
+//     pub fn insert_at_tail(&mut self, data: T) {
+//         let new_node = Arc::new(Mutex::new(Node::new(data)));
+//         match self.tail.take() {
+//             None => {
+//                 self.head = Some(Arc::clone(&new_node));
+//                 self.tail = Some(new_node);
+//                 self.size = 1;
+//             }
+//             Some(t) => {
+//                 t.lock().unwrap().next = Some(Arc::clone(&new_node));
+//                 new_node.lock().unwrap().previous = Some(t);
+//                 self.tail = Some(new_node);
+//                 self.size += 1;
+//             }
+//         }
+//     }
 
-    pub fn pop_head(&mut self) -> Option<T> {
-        self.head.take().map(|h| {
-            self.size -= 1;
-            match h.lock().unwrap().next.take() {
-                None => {
-                    self.tail.take();
-                }
-                Some(h_next) => {
-                    h_next.lock().unwrap().previous = None;
-                    self.head = Some(h_next);
-                }
-            }
-            Arc::try_unwrap(h).ok().unwrap().into_inner().unwrap().item
-        })
-    }
+//     pub fn pop_head(&mut self) -> Option<T> {
+//         self.head.take().map(|h| {
+//             self.size -= 1;
+//             match h.lock().unwrap().next.take() {
+//                 None => {
+//                     self.tail.take();
+//                 }
+//                 Some(h_next) => {
+//                     h_next.lock().unwrap().previous = None;
+//                     self.head = Some(h_next);
+//                 }
+//             }
+//             Arc::try_unwrap(h).ok().unwrap().into_inner().unwrap().item
+//         })
+//     }
 
-    pub fn pop_tail(&mut self) -> Option<T> {
-        self.tail.take().map(|t| {
-            self.size -= 1;
-            match t.lock().unwrap().previous.take() {
-                None => {
-                    self.head.take();
-                }
-                Some(h_previous) => {
-                    h_previous.lock().unwrap().next = None;
-                    self.tail = Some(h_previous);
-                }
-            }
-            Arc::try_unwrap(t).ok().unwrap().into_inner().unwrap().item
-        })
-    }
+//     pub fn pop_tail(&mut self) -> Option<T> {
+//         self.tail.take().map(|t| {
+//             self.size -= 1;
+//             match t.lock().unwrap().previous.take() {
+//                 None => {
+//                     self.head.take();
+//                 }
+//                 Some(h_previous) => {
+//                     h_previous.lock().unwrap().next = None;
+//                     self.tail = Some(h_previous);
+//                 }
+//             }
+//             Arc::try_unwrap(t).ok().unwrap().into_inner().unwrap().item
+//         })
+//     }
 
-    pub fn iter<'a>(&'a self) -> DoubleLinkedListIter<T> {
-        DoubleLinkedListIter {
-            next: self.head.clone(),
-            next_back: self.tail.clone(),
-        }
-    }
-}
+//     pub fn iter<'a>(&'a self) -> DoubleLinkedListIter<T> {
+//         DoubleLinkedListIter {
+//             next: self.head.clone(),
+//             next_back: self.tail.clone(),
+//         }
+//     }
+// }
 
-impl<T> Drop for DoubleLinkedList<T> {
-    fn drop(&mut self) {
-        while let Some(node) = self.head.take() {
-            let _ = node.lock().unwrap().previous.take();
-            self.head = node.lock().unwrap().next.take();
-        }
-        self.tail.take();
-    }
-}
+// impl<T> Drop for DoubleLinkedList<T> {
+//     fn drop(&mut self) {
+//         while let Some(node) = self.head.take() {
+//             let _ = node.lock().unwrap().previous.take();
+//             self.head = node.lock().unwrap().next.take();
+//         }
+//         self.tail.take();
+//     }
+// }
 
-impl<T> Iterator for DoubleLinkedList<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.pop_head()
-    }
-}
+// impl<T> Iterator for DoubleLinkedList<T> {
+//     type Item = T;
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.pop_head()
+//     }
+// }
 
-impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.pop_tail()
-    }
-}
+// impl<T> DoubleEndedIterator for DoubleLinkedList<T> {
+//     fn next_back(&mut self) -> Option<Self::Item> {
+//         self.pop_tail()
+//     }
+// }
 
-impl<T> Iterator for DoubleLinkedListIter<T>
-where
-    T: Clone + Default,
-{
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next.take().map(|node| {
-            let guard = node.lock().unwrap();
-            self.next = guard.next.clone();
-            guard.item.clone()
-        })
-    }
-}
+// impl<T> Iterator for DoubleLinkedListIter<T>
+// where
+//     T: Clone + Default,
+// {
+//     type Item = T;
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.next.take().map(|node| {
+//             let guard = node.lock().unwrap();
+//             self.next = guard.next.clone();
+//             guard.item.clone()
+//         })
+//     }
+// }
 
-impl<T> DoubleEndedIterator for DoubleLinkedListIter<T>
-where
-    T: Clone + Default,
-{
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.next_back.take().map(|node| {
-            let guard = node.lock().unwrap();
-            self.next_back = guard.previous.clone();
-            guard.item.clone()
-        })
-    }
-}
+// impl<T> DoubleEndedIterator for DoubleLinkedListIter<T>
+// where
+//     T: Clone + Default,
+// {
+//     fn next_back(&mut self) -> Option<Self::Item> {
+//         self.next_back.take().map(|node| {
+//             let guard = node.lock().unwrap();
+//             self.next_back = guard.previous.clone();
+//             guard.item.clone()
+//         })
+//     }
+// }
 
 ////////////////////////////
 ///
@@ -258,7 +257,35 @@ pub trait ServerAPI {
 
 type BlockList = DoubleLinkedList<Block>;
 
-impl BlockList {
+#[async_trait]
+pub trait Blocks {
+
+    fn get_block_header_at(&mut self, height: u32) -> Option<Block>;
+    async fn build_block_transactions(
+        &self,
+        block_header: BlockHeader,
+        height: u32,
+    ) -> Result<Block, StateTransitionError>;
+    async fn build_blocks_parallel(self: Arc<Self>, block_height_range: Range<u32>) -> Result<Vec<Block>, ServerError>;
+    
+    // #[async_recursion(?Send)]
+    // async fn build_blocks_backward(
+    //     &self,
+    //     blocks: Vec<Block>,
+    //     block_height_range: Range<u32>,
+    // ) -> Result<Vec<Block>, ServerError>{}
+
+    // #[async_recursion(?Send)]
+    // async fn build_blocks_forward(
+    //     &self,
+    //     mut blocks: Vec<Block>,
+    //     block_height_range: Range<u32>,
+    // ) -> Result<Vec<Block>, ServerError>{}
+
+}
+
+#[async_trait::async_trait]
+impl Blocks for BlockList {
     fn get_block_header_at(&mut self, height: u32) -> Option<Block> {
         for block in self.iter() {
             if block.header.block_height == height {
@@ -327,75 +354,75 @@ impl BlockList {
         return Err(StateTransitionError);
     }
 
-    #[async_recursion(?Send)]
-    async fn build_blocks_backward(
-        &self,
-        blocks: Vec<Block>,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<Block>, ServerError> {
-        let mut iter = self.iter();
-        if iter.next_back().is_none() {
-            return Ok(blocks);
-        }
-        let previous_block = self
-            .build_blocks_backward(blocks, block_height_range.start..block_height_range.end - 1)
-            .await;
-        if previous_block.as_ref().ok().is_some() {
-            iter.next();
-            let block_header = self
-                .block_headers(block_height_range.end - 1..block_height_range.end)
-                .await;
-            let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-            let res2: Vec<_> = header
-                .clone()
-                .into_iter()
-                .map(|bh| {
-                    return self.build_block_transactions(bh, block_height_range.end - 1);
-                })
-                .collect();
-            let mut res = futures::future::join_all(res2).await;
-            match res.remove(0) {
-                Ok(b) => {
-                    let mut previous_blocks = previous_block.unwrap();
-                    previous_blocks.push(b);
-                    return Ok(previous_blocks);
-                },
-                Err(_) => return Err(ServerError),
-            }
-        }
-        return Err(ServerError);
-    }
+    // #[async_recursion(?Send)]
+    // async fn build_blocks_backward(
+    //     &self,
+    //     blocks: Vec<Block>,
+    //     block_height_range: Range<u32>,
+    // ) -> Result<Vec<Block>, ServerError> {
+    //     let mut iter = self.iter();
+    //     if iter.next_back().is_none() {
+    //         return Ok(blocks);
+    //     }
+    //     let previous_block = self
+    //         .build_blocks_backward(blocks, block_height_range.start..block_height_range.end - 1)
+    //         .await;
+    //     if previous_block.as_ref().ok().is_some() {
+    //         iter.next();
+    //         let block_header = self
+    //             .block_headers(block_height_range.end - 1..block_height_range.end)
+    //             .await;
+    //         let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+    //         let res2: Vec<_> = header
+    //             .clone()
+    //             .into_iter()
+    //             .map(|bh| {
+    //                 return self.build_block_transactions(bh, block_height_range.end - 1);
+    //             })
+    //             .collect();
+    //         let mut res = futures::future::join_all(res2).await;
+    //         match res.remove(0) {
+    //             Ok(b) => {
+    //                 let mut previous_blocks = previous_block.unwrap();
+    //                 previous_blocks.push(b);
+    //                 return Ok(previous_blocks);
+    //             },
+    //             Err(_) => return Err(ServerError),
+    //         }
+    //     }
+    //     return Err(ServerError);
+    // }
 
-    #[async_recursion(?Send)]
-    async fn build_blocks_forward(
-        &self,
-        mut blocks: Vec<Block>,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<Block>, ServerError> {
-        let mut iter = self.iter();
-        let block_header = self
-            .block_headers(block_height_range.end - 1..block_height_range.end)
-            .await;
-        let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-        let res2: Vec<_> = header
-            .clone()
-            .into_iter()
-            .map(|bh| {
-                return self.build_block_transactions(bh, block_height_range.end - 1);
-            })
-            .collect();
-        let mut res = futures::future::join_all(res2).await;
-        let d = res.remove(0);
-        if d.as_ref().ok().is_some() {
-            if iter.next().is_none() {
-                return Ok(blocks);
-            }
-            let new_block = d.unwrap();
-            blocks.push(new_block);
-            return self.build_blocks_forward(blocks, block_height_range.start..block_height_range.end - 1).await;
-        }
-        return Err(ServerError)
-    }
+    // #[async_recursion(?Send)]
+    // async fn build_blocks_forward(
+    //     &self,
+    //     mut blocks: Vec<Block>,
+    //     block_height_range: Range<u32>,
+    // ) -> Result<Vec<Block>, ServerError> {
+    //     let mut iter = self.iter();
+    //     let block_header = self
+    //         .block_headers(block_height_range.end - 1..block_height_range.end)
+    //         .await;
+    //     let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+    //     let res2: Vec<_> = header
+    //         .clone()
+    //         .into_iter()
+    //         .map(|bh| {
+    //             return self.build_block_transactions(bh, block_height_range.end - 1);
+    //         })
+    //         .collect();
+    //     let mut res = futures::future::join_all(res2).await;
+    //     let d = res.remove(0);
+    //     if d.as_ref().ok().is_some() {
+    //         if iter.next().is_none() {
+    //             return Ok(blocks);
+    //         }
+    //         let new_block = d.unwrap();
+    //         blocks.push(new_block);
+    //         return self.build_blocks_forward(blocks, block_height_range.start..block_height_range.end - 1).await;
+    //     }
+    //     return Err(ServerError)
+    // }
 }
 
 #[async_trait]
@@ -590,7 +617,7 @@ async fn main() {
     // println!("NEW BLOCK {:#?}", new_block );
 
     let arclist = Arc::new(list_block);
-    let blocks_parallel = arclist.build_blocks_parallel(1..4).await;
+    let blocks_parallel = arclist.build_blocks_parallel(0..7).await;
     println!("block parallel {:#?}", blocks_parallel);
 
     // for i in list.iter().rev() {

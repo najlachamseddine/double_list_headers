@@ -11,3 +11,4 @@ async-trait = "0.1.74"
 futures = "0.3.29"
 hex = "0.4.3"
 tokio = { version = "1.33.0", features = ["full"] }
+list = { path = "./list"}
