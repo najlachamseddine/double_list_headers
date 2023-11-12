@@ -19,7 +19,7 @@ The API to verify and execute the blocks are in the `./api/blocks` module. There
 
 * Recursively forward (terminal) (using the backward is better)
 
-Running `cargo run` (or `cargo run --release`) in the `./api` module (`./api/src/main.rs`) calls the above functions on an instanciated block list.
+Running `cargo run` (or `cargo run --release`) in the `./api` module (for `./api/src/main.rs`) calls the above functions on an instanciated block list. A binary could also be used.
 
 `cargo bench` could also be used to run these tests.
 
