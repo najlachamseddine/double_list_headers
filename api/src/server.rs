@@ -1,27 +1,25 @@
 use async_trait::async_trait;
-use list::linked_list::*;
 use core::ops::Range;
+use list::linked_list::*;
+use serde::{Deserialize, Serialize};
 use std::fmt;
-use serde::{Serialize, Deserialize};
-
 
 /// Fields required by the consensus to validate the block.
 ///
 /// For simplicity, it is a dummy structure. We don't need to
 // verify the block header validity.
-#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq )]
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct ConsensusFields;
 
-
- /// Fields of the transaction that cause some state transition of the blockchain.
+/// Fields of the transaction that cause some state transition of the blockchain.
 ///
 /// For simplicity, it is a dummy structure. We don't need to
 // implement state transition.
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct TransactionFields;
 
- /// The identifier of the transaction in the database and the
- // network.
+/// The identifier of the transaction in the database and the
+// network.
 pub type TransactionId = [u8; 32];
 
 /// The header of the block that describes the final state of the blockchain at `block_height`.
@@ -113,13 +111,12 @@ pub trait ServerAPI {
 
 ///
 /// Double linked list on blocks to support the data to request
-/// 
+///
 pub type BlockList = DoubleLinkedList<Block>;
-
 
 ///
 /// Implements BlockList for the serverAPI trait
-/// 
+///
 #[cfg_attr(test, mockall::automock)]
 #[async_trait]
 impl ServerAPI for BlockList {
