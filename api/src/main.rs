@@ -54,16 +54,17 @@ async fn main() {
         list_block.insert_at_tail(block);
     }
 
+    let arclist = Arc::new(list_block);
+
     //
     // Generates blocks in parallel calling build_blocks_parallel
     //
     println!("---- Builds blocks in parallel");
-    let arclist = Arc::new(list_block);
-    let blocks_parallel = arclist.clone().build_blocks_parallel(0..1000).await;
+    let blocks_parallel = arclist.clone().build_blocks_parallel(0..100000).await;
     // println!("block parallel {:#?}", blocks_parallel);
     assert_eq!(
         blocks_parallel.expect("blocks list in parallel").len(),
-        1000
+        100000
     );
     println!("---- End build blocks in parallel");
 
@@ -72,11 +73,10 @@ async fn main() {
     // (Might need to increase the local stack size)
     // 
     println!("---- Builds blocks backward");
-    // let arclist = Arc::new(list_block);
     let blcks: Vec<Block> = vec![];
-    let blocks_backward = arclist.clone().build_blocks_backward(blcks, 0..1000).await;
+    let blocks_backward = arclist.clone().build_blocks_backward(blcks, 0..30000).await;
     // println!("block parallel backward {:#?}", blocks_backward);
-    assert_eq!(blocks_backward.expect("blocks list backward").len(), 1000);
+    assert_eq!(blocks_backward.expect("blocks list backward").len(), 30000);
     println!("---- End build blocks backward");
 
     //
@@ -84,7 +84,6 @@ async fn main() {
     // (Might need to increase thr local stack size)
     //
     println!("---- Builds blocks forward");
-    // let arclist = Arc::new(list_block);
     let blcks: Vec<Block> = vec![];
     let blocks_forward = arclist.clone().build_blocks_forward(blcks, 0..5000).await;
     // println!("block parallel forward {:#?}", blocks_forward);
