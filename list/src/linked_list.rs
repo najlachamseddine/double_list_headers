@@ -19,7 +19,7 @@ impl<T> Node<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DoubleLinkedList<T> {
     head: Option<Link<T>>,
     tail: Option<Link<T>>,
@@ -117,7 +117,7 @@ impl<T> DoubleLinkedList<T> {
         }
     }
 }
-
+ 
 impl<T> Drop for DoubleLinkedList<T> {
     fn drop(&mut self) {
         while let Some(node) = self.head.take() {
@@ -175,7 +175,21 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let mut list = DoubleLinkedList::<i32>::new();
+        for i in 0..4 {
+            list.insert_at_tail(i);
+        }
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(0));
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), None);
+        assert_eq!(iter.next_back(), Some(3));
+        assert_eq!(iter.next_back(), Some(2));
+        assert_eq!(iter.next_back(), Some(1));
+        assert_eq!(iter.next_back(), Some(0));
+        assert_eq!(iter.next_back(), None);
     }
+    
 }

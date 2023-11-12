@@ -1,10 +1,10 @@
-use async_trait::async_trait;
-use core::ops::Range;
-use hex::FromHex;
-use std::fmt;
-use std::sync::Arc;
-use async_recursion::async_recursion;
-use list::linked_list::*;
+// use async_trait::async_trait;
+// use core::ops::Range;
+// use hex::FromHex;
+// use std::fmt;
+// use std::sync::Arc;
+// use async_recursion::async_recursion;
+// use list::linked_list::*;
 
 // // Rc::RefCell can also be used (non thread safe though)
 // pub type Link<T> = Arc<Mutex<Node<T>>>;
@@ -178,327 +178,472 @@ use list::linked_list::*;
 ////////////////////////////
 ///
 ///
-#[derive(Debug, Default, Clone, Copy)]
-pub struct ConsensusFields;
+// #[derive(Debug, Default, Clone, Copy)]
+// pub struct ConsensusFields;
 
-#[derive(Debug, Default, Clone, Copy)]
-pub struct TransactionFields;
+// #[derive(Debug, Default, Clone, Copy)]
+// pub struct TransactionFields;
 
-pub type TransactionId = [u8; 32];
+// pub type TransactionId = [u8; 32];
 
-#[derive(Debug, Default, Clone, Copy)]
-pub struct BlockHeader {
-    pub block_height: u32,
-    pub consensus_fields: ConsensusFields,
-}
+// #[derive(Debug, Default, Clone, Copy)]
+// pub struct BlockHeader {
+//     pub block_height: u32,
+//     pub consensus_fields: ConsensusFields,
+// }
 
-impl BlockHeader {
-    /// The function that verifies the block header validity.
-    pub fn verify(&self) -> bool {
-        true
-    }
-}
+// impl BlockHeader {
+//     /// The function that verifies the block header validity.
+//     pub fn verify(&self) -> bool {
+//         true
+//     }
+// }
 
-#[derive(Debug)]
-pub struct StateTransitionError;
+// #[derive(Debug)]
+// pub struct StateTransitionError;
 
-impl fmt::Display for StateTransitionError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "State transition error")
-    }
-}
+// impl fmt::Display for StateTransitionError {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "State transition error")
+//     }
+// }
 
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Transaction {
-    pub tx_id: TransactionId,
-    pub transaction_fields: TransactionFields,
-}
+// #[derive(Debug, Default, Clone, Copy)]
+// pub struct Transaction {
+//     pub tx_id: TransactionId,
+//     pub transaction_fields: TransactionFields,
+// }
 
-impl Transaction {
-    /// The function executes transaction and performance state
-    // transition.
-    pub fn execute(self) -> Result<(), StateTransitionError> {
-        let a = 0;
-        if a == 0 {
-            return Ok(());
-        }
-        return Err(StateTransitionError);
-    }
-}
+// impl Transaction {
+//     /// The function executes transaction and performance state
+//     // transition.
+//     pub fn execute(self) -> Result<(), StateTransitionError> {
+//         let a = 0;
+//         if a == 0 {
+//             return Ok(());
+//         }
+//         return Err(StateTransitionError);
+//     }
+// }
 
-#[derive(Debug, Clone, Default)]
-pub struct Block {
-    pub header: BlockHeader,
-    pub transactions: Vec<Transaction>,
-}
+// #[derive(Debug, Clone, Default)]
+// pub struct Block {
+//     pub header: BlockHeader,
+//     pub transactions: Vec<Transaction>,
+// }
 
-#[derive(Debug)]
-pub struct ServerError;
+// #[derive(Debug)]
+// pub struct ServerError;
 
-impl fmt::Display for ServerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Server error")
-    }
-}
+// impl fmt::Display for ServerError {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "Server error")
+//     }
+// }
 
-#[async_trait]
-pub trait ServerAPI {
-    // add async later
-    async fn block_headers(
-        &self,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<BlockHeader>, ServerError>;
+// #[async_trait]
+// pub trait ServerAPI {
+//     // add async later
+//     async fn block_headers(
+//         &self,
+//         block_height_range: Range<u32>,
+//     ) -> Result<Vec<BlockHeader>, ServerError>;
 
-    async fn block_transactions(
-        &self,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<Vec<Transaction>>, ServerError>;
-}
+//     async fn block_transactions(
+//         &self,
+//         block_height_range: Range<u32>,
+//     ) -> Result<Vec<Vec<Transaction>>, ServerError>;
+// }
 
-type BlockList = DoubleLinkedList<Block>;
+// type BlockList = DoubleLinkedList<Block>;
 
-#[async_trait]
-pub trait Blocks {
+// #[async_trait]
+// pub trait Blocks {
 
-    fn get_block_header_at(&mut self, height: u32) -> Option<Block>;
-    async fn build_block_transactions(
-        &self,
-        block_header: BlockHeader,
-        height: u32,
-    ) -> Result<Block, StateTransitionError>;
-    async fn build_blocks_parallel(self: Arc<Self>, block_height_range: Range<u32>) -> Result<Vec<Block>, ServerError>;
+//     fn get_block_header_at(&mut self, height: u32) -> Option<Block>;
+//     async fn build_block_transactions(
+//         &self,
+//         block_header: BlockHeader,
+//         height: u32,
+//     ) -> Result<Block, StateTransitionError>;
+//     async fn build_blocks_parallel(self: Arc<Self>, block_height_range: Range<u32>) -> Result<Vec<Block>, ServerError>;
     
-    // #[async_recursion(?Send)]
-    // async fn build_blocks_backward(
-    //     &self,
-    //     blocks: Vec<Block>,
-    //     block_height_range: Range<u32>,
-    // ) -> Result<Vec<Block>, ServerError>{}
+//     // #[async_recursion(?Send)]
+//     // async fn build_blocks_backward(
+//     //     &self,
+//     //     blocks: Vec<Block>,
+//     //     block_height_range: Range<u32>,
+//     // ) -> Result<Vec<Block>, ServerError>{}
 
-    // #[async_recursion(?Send)]
-    // async fn build_blocks_forward(
-    //     &self,
-    //     mut blocks: Vec<Block>,
-    //     block_height_range: Range<u32>,
-    // ) -> Result<Vec<Block>, ServerError>{}
+//     // #[async_recursion(?Send)]
+//     // async fn build_blocks_forward(
+//     //     &self,
+//     //     mut blocks: Vec<Block>,
+//     //     block_height_range: Range<u32>,
+//     // ) -> Result<Vec<Block>, ServerError>{}
 
-}
+// }
 
-#[async_trait::async_trait]
-impl Blocks for BlockList {
-    fn get_block_header_at(&mut self, height: u32) -> Option<Block> {
-        for block in self.iter() {
-            if block.header.block_height == height {
-                return Some(block);
-            }
-        }
-        return None;
-    }
+// #[async_trait::async_trait]
+// impl Blocks for BlockList {
+//     fn get_block_header_at(&mut self, height: u32) -> Option<Block> {
+//         for block in self.iter() {
+//             if block.header.block_height == height {
+//                 return Some(block);
+//             }
+//         }
+//         return None;
+//     }
 
-    async fn build_blocks_parallel(
-        self: Arc<Self>,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<Block>, ServerError> {
-        let mut blocks = vec![];
-        let res1: Vec<_> = block_height_range
-            .into_iter()
-            .map(|i| {
-                let s = self.clone();
-                return tokio::spawn(async move {
-                    let block_header = s.block_headers(i..i + 1).await;
-                    let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-                    let res2: Vec<_> = header
-                        .clone()
-                        .into_iter()
-                        .map(|bh| {
-                            return s.build_block_transactions(bh, i);
-                        })
-                        .collect();
-                    let mut res = futures::future::join_all(res2).await;
-                    return res.remove(0).unwrap();
-                });
-            })
-            .collect();
-        let res = futures::future::join_all(res1).await;
-        for r in res {
-            blocks.push(r.unwrap().clone())
-        }
-        Ok(blocks)
-    }
+//     async fn build_blocks_parallel(
+//         self: Arc<Self>,
+//         block_height_range: Range<u32>,
+//     ) -> Result<Vec<Block>, ServerError> {
+//         let mut blocks = vec![];
+//         let res1: Vec<_> = block_height_range
+//             .into_iter()
+//             .map(|i| {
+//                 let s = self.clone();
+//                 return tokio::spawn(async move {
+//                     let block_header = s.block_headers(i..i + 1).await;
+//                     let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+//                     let res2: Vec<_> = header
+//                         .clone()
+//                         .into_iter()
+//                         .map(|bh| {
+//                             return s.build_block_transactions(bh, i);
+//                         })
+//                         .collect();
+//                     let mut res = futures::future::join_all(res2).await;
+//                     return res.remove(0).unwrap();
+//                 });
+//             })
+//             .collect();
+//         let res = futures::future::join_all(res1).await;
+//         for r in res {
+//             blocks.push(r.unwrap().clone())
+//         }
+//         Ok(blocks)
+//     }
 
-    async fn build_block_transactions(
-        &self,
-        block_header: BlockHeader,
-        height: u32,
-    ) -> Result<Block, StateTransitionError> {
-        if !block_header.verify() {
-            return Err(StateTransitionError);
-        }
-        let block_transactions = self.block_transactions(height..height + 1).await;
-        let transactions = block_transactions.map_err(|e| ServerError).unwrap();
-        let mut x: Vec<_> = transactions
-            .into_iter()
-            .map(|txs| match validate_block_transactions(txs.clone()) {
-                Ok(()) => {
-                    return Ok(Block {
-                        header: block_header,
-                        transactions: txs,
-                    });
-                }
-                Err(_) => return Err(StateTransitionError),
-            })
-            .collect();
-        if x.len() == 1 {
-            return x.remove(0);
-        }
-        return Err(StateTransitionError);
-    }
+//     async fn build_block_transactions(
+//         &self,
+//         block_header: BlockHeader,
+//         height: u32,
+//     ) -> Result<Block, StateTransitionError> {
+//         if !block_header.verify() {
+//             return Err(StateTransitionError);
+//         }
+//         let block_transactions = self.block_transactions(height..height + 1).await;
+//         let transactions = block_transactions.map_err(|e| ServerError).unwrap();
+//         let mut x: Vec<_> = transactions
+//             .into_iter()
+//             .map(|txs| match validate_block_transactions(txs.clone()) {
+//                 Ok(()) => {
+//                     return Ok(Block {
+//                         header: block_header,
+//                         transactions: txs,
+//                     });
+//                 }
+//                 Err(_) => return Err(StateTransitionError),
+//             })
+//             .collect();
+//         if x.len() == 1 {
+//             return x.remove(0);
+//         }
+//         return Err(StateTransitionError);
+//     }
 
-    // #[async_recursion(?Send)]
-    // async fn build_blocks_backward(
-    //     &self,
-    //     blocks: Vec<Block>,
-    //     block_height_range: Range<u32>,
-    // ) -> Result<Vec<Block>, ServerError> {
-    //     let mut iter = self.iter();
-    //     if iter.next_back().is_none() {
-    //         return Ok(blocks);
-    //     }
-    //     let previous_block = self
-    //         .build_blocks_backward(blocks, block_height_range.start..block_height_range.end - 1)
-    //         .await;
-    //     if previous_block.as_ref().ok().is_some() {
-    //         iter.next();
-    //         let block_header = self
-    //             .block_headers(block_height_range.end - 1..block_height_range.end)
-    //             .await;
-    //         let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-    //         let res2: Vec<_> = header
-    //             .clone()
-    //             .into_iter()
-    //             .map(|bh| {
-    //                 return self.build_block_transactions(bh, block_height_range.end - 1);
-    //             })
-    //             .collect();
-    //         let mut res = futures::future::join_all(res2).await;
-    //         match res.remove(0) {
-    //             Ok(b) => {
-    //                 let mut previous_blocks = previous_block.unwrap();
-    //                 previous_blocks.push(b);
-    //                 return Ok(previous_blocks);
-    //             },
-    //             Err(_) => return Err(ServerError),
-    //         }
-    //     }
-    //     return Err(ServerError);
-    // }
+//     // #[async_recursion(?Send)]
+//     // async fn build_blocks_backward(
+//     //     &self,
+//     //     blocks: Vec<Block>,
+//     //     block_height_range: Range<u32>,
+//     // ) -> Result<Vec<Block>, ServerError> {
+//     //     let mut iter = self.iter();
+//     //     if iter.next_back().is_none() {
+//     //         return Ok(blocks);
+//     //     }
+//     //     let previous_block = self
+//     //         .build_blocks_backward(blocks, block_height_range.start..block_height_range.end - 1)
+//     //         .await;
+//     //     if previous_block.as_ref().ok().is_some() {
+//     //         iter.next();
+//     //         let block_header = self
+//     //             .block_headers(block_height_range.end - 1..block_height_range.end)
+//     //             .await;
+//     //         let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+//     //         let res2: Vec<_> = header
+//     //             .clone()
+//     //             .into_iter()
+//     //             .map(|bh| {
+//     //                 return self.build_block_transactions(bh, block_height_range.end - 1);
+//     //             })
+//     //             .collect();
+//     //         let mut res = futures::future::join_all(res2).await;
+//     //         match res.remove(0) {
+//     //             Ok(b) => {
+//     //                 let mut previous_blocks = previous_block.unwrap();
+//     //                 previous_blocks.push(b);
+//     //                 return Ok(previous_blocks);
+//     //             },
+//     //             Err(_) => return Err(ServerError),
+//     //         }
+//     //     }
+//     //     return Err(ServerError);
+//     // }
 
-    // #[async_recursion(?Send)]
-    // async fn build_blocks_forward(
-    //     &self,
-    //     mut blocks: Vec<Block>,
-    //     block_height_range: Range<u32>,
-    // ) -> Result<Vec<Block>, ServerError> {
-    //     let mut iter = self.iter();
-    //     let block_header = self
-    //         .block_headers(block_height_range.end - 1..block_height_range.end)
-    //         .await;
-    //     let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
-    //     let res2: Vec<_> = header
-    //         .clone()
-    //         .into_iter()
-    //         .map(|bh| {
-    //             return self.build_block_transactions(bh, block_height_range.end - 1);
-    //         })
-    //         .collect();
-    //     let mut res = futures::future::join_all(res2).await;
-    //     let d = res.remove(0);
-    //     if d.as_ref().ok().is_some() {
-    //         if iter.next().is_none() {
-    //             return Ok(blocks);
-    //         }
-    //         let new_block = d.unwrap();
-    //         blocks.push(new_block);
-    //         return self.build_blocks_forward(blocks, block_height_range.start..block_height_range.end - 1).await;
-    //     }
-    //     return Err(ServerError)
-    // }
-}
+//     // #[async_recursion(?Send)]
+//     // async fn build_blocks_forward(
+//     //     &self,
+//     //     mut blocks: Vec<Block>,
+//     //     block_height_range: Range<u32>,
+//     // ) -> Result<Vec<Block>, ServerError> {
+//     //     let mut iter = self.iter();
+//     //     let block_header = self
+//     //         .block_headers(block_height_range.end - 1..block_height_range.end)
+//     //         .await;
+//     //     let header = block_header.map_err(|e| ServerError).unwrap(); // check the return
+//     //     let res2: Vec<_> = header
+//     //         .clone()
+//     //         .into_iter()
+//     //         .map(|bh| {
+//     //             return self.build_block_transactions(bh, block_height_range.end - 1);
+//     //         })
+//     //         .collect();
+//     //     let mut res = futures::future::join_all(res2).await;
+//     //     let d = res.remove(0);
+//     //     if d.as_ref().ok().is_some() {
+//     //         if iter.next().is_none() {
+//     //             return Ok(blocks);
+//     //         }
+//     //         let new_block = d.unwrap();
+//     //         blocks.push(new_block);
+//     //         return self.build_blocks_forward(blocks, block_height_range.start..block_height_range.end - 1).await;
+//     //     }
+//     //     return Err(ServerError)
+//     // }
+// }
 
-#[async_trait]
-impl ServerAPI for BlockList {
-    // add async later
-    async fn block_headers(
-        &self,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<BlockHeader>, ServerError> {
-        let mut headers = vec![];
-        let h_start = block_height_range.start;
-        let h_end = block_height_range.end;
-        let mut iter = self.iter();
-        for i in 0..=h_end {
-            let block = iter.next();
-            if block.is_none() {
-                return Ok(headers);
-            }
-            if block.clone().unwrap().header.block_height != i {
-                return Err(ServerError);
-            }
-            if i < h_start {
-                continue;
-            }
-            headers.push(block.unwrap().header);
-        }
-        Ok(headers)
-    }
+// #[async_trait]
+// impl ServerAPI for BlockList {
+//     // add async later
+//     async fn block_headers(
+//         &self,
+//         block_height_range: Range<u32>,
+//     ) -> Result<Vec<BlockHeader>, ServerError> {
+//         let mut headers = vec![];
+//         let h_start = block_height_range.start;
+//         let h_end = block_height_range.end;
+//         let mut iter = self.iter();
+//         for i in 0..=h_end {
+//             let block = iter.next();
+//             if block.is_none() {
+//                 return Ok(headers);
+//             }
+//             if block.clone().unwrap().header.block_height != i {
+//                 return Err(ServerError);
+//             }
+//             if i < h_start {
+//                 continue;
+//             }
+//             headers.push(block.unwrap().header);
+//         }
+//         Ok(headers)
+//     }
 
-    async fn block_transactions(
-        &self,
-        block_height_range: Range<u32>,
-    ) -> Result<Vec<Vec<Transaction>>, ServerError> {
-        let mut transactions = vec![];
-        let h_start = block_height_range.start;
-        let h_end = block_height_range.end;
-        let mut iter = self.iter();
-        for i in 0..h_end {
-            let block = iter.next();
-            if block.is_none() {
-                return Ok(transactions);
-            }
-            if block.clone().unwrap().header.block_height != i {
-                return Err(ServerError);
-            }
-            if i < h_start {
-                continue;
-            }
-            transactions.push(block.unwrap().transactions)
-        }
-        Ok(transactions)
-    }
-}
+//     async fn block_transactions(
+//         &self,
+//         block_height_range: Range<u32>,
+//     ) -> Result<Vec<Vec<Transaction>>, ServerError> {
+//         let mut transactions = vec![];
+//         let h_start = block_height_range.start;
+//         let h_end = block_height_range.end;
+//         let mut iter = self.iter();
+//         for i in 0..h_end {
+//             let block = iter.next();
+//             if block.is_none() {
+//                 return Ok(transactions);
+//             }
+//             if block.clone().unwrap().header.block_height != i {
+//                 return Err(ServerError);
+//             }
+//             if i < h_start {
+//                 continue;
+//             }
+//             transactions.push(block.unwrap().transactions)
+//         }
+//         Ok(transactions)
+//     }
+// }
 
-fn validate_block_transactions(transactions: Vec<Transaction>) -> Result<(), StateTransitionError> {
-    for transaction in transactions.iter() {
-        let validate = transaction.execute();
-        match validate {
-            Ok(()) => continue,
-            Err(_e) => return Err(StateTransitionError {}),
-        }
-    }
-    Ok(())
-}
+// fn validate_block_transactions(transactions: Vec<Transaction>) -> Result<(), StateTransitionError> {
+//     for transaction in transactions.iter() {
+//         let validate = transaction.execute();
+//         match validate {
+//             Ok(()) => continue,
+//             Err(_e) => return Err(StateTransitionError {}),
+//         }
+//     }
+//     Ok(())
+// }
+
+// #[tokio::main]
+// async fn main() {
+
+//     println!("Hello, world!");
+//     let mut list = DoubleLinkedList::<i32>::new();
+//     for i in 0..10 {
+//         print!("print the index {:#?}", i);
+//         // list.insert_at_head(i);
+//         list.insert_at_tail(i);
+//     }
+
+//     let mut list_block = BlockList::new();
+//     let block_header0 = BlockHeader {
+//         block_height: 0,
+//         consensus_fields: ConsensusFields {},
+//     };
+
+//     let transaction0 = Transaction {
+//         tx_id: <[u8; 32]>::from_hex(
+//             "1e6f77206973207468652074696d6520666f7220616c6c20676f6f64206d656e",
+//         )
+//         .expect("invalid tx_id"),
+//         transaction_fields: TransactionFields {},
+//     };
+//     let transaction1 = Transaction {
+//         tx_id: <[u8; 32]>::from_hex(
+//             "2eef77206973207468652074696d6520666f7220616c6c20676f6f64206d656e",
+//         )
+//         .expect("invalid tx_id"),
+//         transaction_fields: TransactionFields {},
+//     };
+//     let transaction2 = Transaction {
+//         tx_id: <[u8; 32]>::from_hex(
+//             "3eaf77206973207468652074696d6520666f7220616c6c20676f6f64206d656e",
+//         )
+//         .expect("invalid tx_id"),
+//         transaction_fields: TransactionFields {},
+//     };
+//     let transaction3 = Transaction {
+//         tx_id: <[u8; 32]>::from_hex(
+//             "4eff77206973207468652074696d6520666f7220616c6c20676f6f64206d656e",
+//         )
+//         .expect("invalid tx_id"),
+//         transaction_fields: TransactionFields {},
+//     };
+//     let mut transactions = Vec::new();
+//     transactions.push(transaction0);
+//     transactions.push(transaction1);
+//     transactions.push(transaction2);
+//     transactions.push(transaction3);
+
+//     let block0 = Block {
+//         header: block_header0,
+//         transactions: transactions.clone(),
+//     };
+
+//     let block_header1 = BlockHeader {
+//         block_height: 1,
+//         consensus_fields: ConsensusFields {},
+//     };
+//     let block1 = Block {
+//         header: block_header1,
+//         transactions: transactions.clone(),
+//     };
+
+//     let block_header2 = BlockHeader {
+//         block_height: 2,
+//         consensus_fields: ConsensusFields {},
+//     };
+//     let block2 = Block {
+//         header: block_header2,
+//         transactions: transactions.clone(),
+//     };
+
+//     let block_header3 = BlockHeader {
+//         block_height: 3,
+//         consensus_fields: ConsensusFields {},
+//     };
+//     let block3 = Block {
+//         header: block_header3,
+//         transactions: transactions.clone(),
+//     };
+
+//     let block_header4 = BlockHeader {
+//         block_height: 4,
+//         consensus_fields: ConsensusFields {},
+//     };
+//     let block4 = Block {
+//         header: block_header4,
+//         transactions: transactions.clone(),
+//     };
+
+//     let block_header5 = BlockHeader {
+//         block_height: 5,
+//         consensus_fields: ConsensusFields {},
+//     };
+//     let block5 = Block {
+//         header: block_header5,
+//         transactions: transactions.clone(),
+//     };
+
+//     list_block.insert_at_head(block5);
+//     list_block.insert_at_head(block4);
+//     list_block.insert_at_head(block3);
+//     list_block.insert_at_head(block2);
+//     list_block.insert_at_head(block1);
+//     list_block.insert_at_head(block0.clone());
+
+//     //  for j in list_block.iter() {
+//     //     println!("{:#?}", j);
+//     //     // break;
+//     // }
+
+//     // let block_at = list_block.get_block_header_at(2);
+//     // println!("BLOCK AT {:#?}", block_at);
+
+//     //    let verify_block_headers = list_block.verify_block_header_list(0..4);
+//     //    println!("verify list headers {:#?}", verify_block_headers);
+
+//     // let headers = list_block.block_headers(1..6).await;
+//     // println!("block headers {:#?}", headers);
+
+//     // let valid = validate_block_transactions(block0.clone().transactions);
+//     // println!("validate transactions {:#?}", valid);
+
+//     // let new_block = list_block.build_block_transactions(block_header3, 3).await;
+//     // println!("NEW BLOCK {:#?}", new_block );
+
+//     let arclist = Arc::new(list_block);
+//     let blocks_parallel = arclist.build_blocks_parallel(0..7).await;
+//     println!("block parallel {:#?}", blocks_parallel);
+
+//     // for i in list.iter().rev() {
+//     //     println!("{}", i);
+//     //     // break;
+//     // }
+//     for j in list.iter() {
+//         println!("{}", j);
+//         // break;
+//     }
+
+//     // for k in list.iter().rev() {
+//     //     println!("{}", k);
+//     //     // break;
+//     // }
+// }
+
+use requests::handlers;
+use requests::routes;
+use api::server::*;
+use hex::FromHex;
+
+mod requests;
 
 #[tokio::main]
 async fn main() {
-
-    println!("Hello, world!");
-    let mut list = DoubleLinkedList::<i32>::new();
-    for i in 0..10 {
-        print!("print the index {:#?}", i);
-        // list.insert_at_head(i);
-        list.insert_at_tail(i);
-    }
-
     let mut list_block = BlockList::new();
     let block_header0 = BlockHeader {
         block_height: 0,
@@ -595,42 +740,8 @@ async fn main() {
     list_block.insert_at_head(block2);
     list_block.insert_at_head(block1);
     list_block.insert_at_head(block0.clone());
+    let routes = routes::routes(list_block);
 
-    //  for j in list_block.iter() {
-    //     println!("{:#?}", j);
-    //     // break;
-    // }
-
-    // let block_at = list_block.get_block_header_at(2);
-    // println!("BLOCK AT {:#?}", block_at);
-
-    //    let verify_block_headers = list_block.verify_block_header_list(0..4);
-    //    println!("verify list headers {:#?}", verify_block_headers);
-
-    // let headers = list_block.block_headers(1..6).await;
-    // println!("block headers {:#?}", headers);
-
-    // let valid = validate_block_transactions(block0.clone().transactions);
-    // println!("validate transactions {:#?}", valid);
-
-    // let new_block = list_block.build_block_transactions(block_header3, 3).await;
-    // println!("NEW BLOCK {:#?}", new_block );
-
-    let arclist = Arc::new(list_block);
-    let blocks_parallel = arclist.build_blocks_parallel(0..7).await;
-    println!("block parallel {:#?}", blocks_parallel);
-
-    // for i in list.iter().rev() {
-    //     println!("{}", i);
-    //     // break;
-    // }
-    for j in list.iter() {
-        println!("{}", j);
-        // break;
-    }
-
-    // for k in list.iter().rev() {
-    //     println!("{}", k);
-    //     // break;
-    // }
+    println!("Server started at http://localhost:8000");
+    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
 }
