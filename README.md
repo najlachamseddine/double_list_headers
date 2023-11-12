@@ -15,18 +15,18 @@ The API to verify and execute the blocks are in the `./api/blocks` module. There
 
 * In parallel where each block can be verified independently from each other (`build_blocks_parallel` function)
 
-* Recursively backward where block X depends on block X - 1 verification/execution (`build_blocks_backward` function)
+* Recursively backward where block `X` depends on block `X - 1` verification/execution (`build_blocks_backward` function)
 
 * Recursively forward (terminal) (using the backward is better)
 
-Running `cargo run` in the `./api` module (`./api/src/main.rs`) calls the above functions on an instanciated block list.
+Running `cargo run` (or `cargo run --release`) in the `./api` module (`./api/src/main.rs`) calls the above functions on an instanciated block list.
 
 `cargo bench` could also be used to run these tests.
 
 
 ## warp server
 
-A warp server is built in the root of the project but not finished yet.
+A warp server is built in the root of the project with endpoints calling the different block build functions but not finished yet.
 
 
 
