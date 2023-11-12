@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
+    
     let mut list_block = BlockList::new();
 
     let transaction0 = Transaction {
