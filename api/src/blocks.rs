@@ -67,7 +67,7 @@ impl Blocks for BlockList {
                     let block_header = s.block_headers(i..i + 1).await;
                     let header = block_header
                         .map_err(|e| e.to_string())
-                        .expect("header returned from the server"); // needs better error handling
+                        .expect("header returned from the server, check if your range is correct"); // needs better error handling
                     let res_block: Vec<_> = header
                         .clone()
                         .into_iter()
@@ -103,7 +103,7 @@ impl Blocks for BlockList {
         let block_transactions = self.block_transactions(height..height + 1).await;
         let transactions = block_transactions
             .map_err(|e| e.to_string())
-            .expect("transactions returned from the server");
+            .expect("transactions returned from the server; check if your range is correct");
         let mut txns: Vec<_> = transactions
             .into_iter()
             .map(|txs| match validate_block_transactions(txs.clone()) {
