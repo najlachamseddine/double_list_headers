@@ -26,7 +26,7 @@ Running `cargo run` (or `cargo run --release`) in the `./api` module (`./api/src
 
 ## warp server
 
-A warp server is built in the root of the project with endpoints calling the different block build functions but not finished yet.
+A warp server is built in the root of the project with endpoints calling the different block build functions but not finished yet (fixing tokio runtime issue)
 
 
 

@@ -51,7 +51,7 @@ impl Blocks for BlockList {
         return None;
     }
 
-    /// Builld the build independently X does not depend on X - 1
+    /// Build the build independently X does not depend on X - 1
     ///
     /// Spawn an async thread for each block height
     async fn build_blocks_parallel(
@@ -64,22 +64,18 @@ impl Blocks for BlockList {
             .map(|i| {
                 let s = self.clone();
                 return tokio::spawn(async move {
-                    // println!("HEIGHT RANGE {:#?}", i);
                     let block_header = s.block_headers(i..i + 1).await;
                     let header = block_header
                         .map_err(|e| e.to_string())
-                        .expect("header returned from the server"); // check the return
+                        .expect("header returned from the server"); // needs better error handling
                     let res_block: Vec<_> = header
                         .clone()
                         .into_iter()
                         .map(|bh| {
-                            // println!("INSIDE BLOCK HEADER {:#?}", bh);
                             return s.build_block_transactions(bh, i);
-                            // let mut new_block = futures::future::join_all(b).await;
                         })
                         .collect();
                     let mut new_block = futures::future::join_all(res_block).await;
-                    // println!("NEW BLOCK LENGTH {:#?}", new_block.len());
                     return new_block.pop().unwrap();
                 });
             })
