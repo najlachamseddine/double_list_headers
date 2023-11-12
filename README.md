@@ -32,31 +32,28 @@ A warp server is built in the root of the project but not finished yet.
 
 
 
+## The task
+ 
+  The task is to fetch all [`Block`]s for the range `0..100_000`,
+ but:
+ - Before the requesting transactions, we need to call
+   [`BlockHeader::verify`]
+  and fetch transactions only if it returns `true`.
+  - Before combining [`BlockHeader`] and [`Vec<Transaction>`]
+   into [`Block`], we need to
+ iterate over each transaction and call
+  [`Transaction::execute`]. If all results are [`Result::Ok`],
+ then we can create a [`Block`].
+  
+   The goal of the task is to request data as fast as possible(in
+  parallel). Blocks can be executed
+  and verified independently. It means verification or execution
+   of the block
+   at height `X` can be done without block at height `X - 1`.
 
-
-
-
-
- // The task is to fetch all [`Block`]s for the range `0..100_000`,
-  // but:
-  // - Before the requesting transactions, we need to call
-  // [`BlockHeader::verify`]
-  // and fetch transactions only if it returns `true`.
-  // - Before combining [`BlockHeader`] and [`Vec<Transaction>`]
-  // into [`Block`], we need to
-  // iterate over each transaction and call
-  // [`Transaction::execute`]. If all results are [`Result::Ok`],
-  // then we can create a [`Block`].
-  //
-  // The goal of the task is to request data as fast as possible(in
-  // parallel). Blocks can be executed
-  // and verified independently. It means verification or execution
-  // of the block
-  // at height `X` can be done without block at height `X - 1`.
-  //
-  // An additional optional task: The same goal as before, but
-  // verification/execution of
-  // the block header/block at height `X` requires verification/
-  // execution of
-  // the block header/block at height `X - 1`.
+   An additional optional task: The same goal as before, but
+   verification/execution of
+   the block header/block at height `X` requires verification/
+   execution of
+   the block header/block at height `X - 1`.
 
