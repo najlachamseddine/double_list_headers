@@ -7,9 +7,12 @@ use tokio::runtime::Runtime;
 
 #[tokio::main]
 async fn main() {
-    // bench can be used
+    // cargo bench can be used
 
     let mut list_block = BlockList::new();
+
+
+   // Could have generated transactions randomly and much more to simulate real blocks performance
 
     let transaction0 = Transaction {
         tx_id: <[u8; 32]>::from_hex(
