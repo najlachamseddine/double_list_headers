@@ -22,6 +22,10 @@ The API to verify and execute the blocks are in the `./api/blocks` module. There
 Running `cargo run` (or `cargo run --release`) in the `./api` module (for `./api/src/main.rs`) calls the above functions on an instanciated block list. A binary could also be used.
 Times could be given.
 
+```
+double_list_headers/api$ cargo run 
+```
+
 
 ## warp server (not finished)
 
