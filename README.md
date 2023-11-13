@@ -23,7 +23,7 @@ Running `cargo run` (or `cargo run --release`) in the `./api` module (for `./api
 Times could be given.
 
 ```
-double_list_headers/api$ cargo run 
+double_list_headers/api$ cargo run --release
 ```
 
 
